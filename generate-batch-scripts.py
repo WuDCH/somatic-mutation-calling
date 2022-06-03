@@ -132,15 +132,9 @@ class WESSample:
             cmd += ("java -Xmx16g -jar $SNPEFF_JAR -noStats -hgvs -lof hg38 "
                 f"{vcf_directory}/filtered_{sample_name}.vcf > {vcf_directory}/annotated_{sample_name}.vcf")
 
-        WESSample.write_to_file(cmd.rstrip(), f"{name}-{sample_name}-filter-annotate.sh")
+            WESSample.write_to_file(cmd.rstrip(), f"{name}-{sample_name}-filter-annotate.sh")
 
 if __name__ == "__main__":
-    """
-    name = sys.argv[1]
-    metadata_filename = sys.argv[2]
-    output_directory = sys.argv[3]
-    """
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--name')
     parser.add_argument('-I', '--infile', help="path to run info file")
