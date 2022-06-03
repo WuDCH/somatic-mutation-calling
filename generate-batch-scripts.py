@@ -5,7 +5,8 @@ import argparse
 
 class WESSample:
 
-    sample_name = "Sample Name"
+    sample_name = "submitted_subject_id"
+    sample_type = "Sample Name"
 
     def __init__(self, name: str, filename: str, kw_labels: tuple):
         self.name = name
@@ -20,7 +21,8 @@ class WESSample:
     def preprocess_runinfo(self):
         # write/replace labels, assigning either "normal" or "tumour" to each run
         for pattern, standard_label in self.kw_to_label.items():
-            self.runinfo_table.replace({"Library Name": r'.*'+pattern}, {"Library Name": standard_label},  regex=True, inplace=True)
+            # https://docs.python.org/3/library/re.html
+            self.runinfo_table.replace({WESSample.sample_type: fr'.*{pattern}.*'}, {WESSample.sample_type: standard_label},  regex=True, inplace=True)
 
     def groupby_sample(self):
         # get all rows corresponding to a sample, create dictionary keys: sample and values: normal/tumour runs
@@ -29,7 +31,7 @@ class WESSample:
             for sample_type in self.kw_to_label.values():
 
                 match_sample = self.runinfo_table[WESSample.sample_name] == sample
-                match_sample_type = self.runinfo_table["Library Name"] == sample_type
+                match_sample_type = self.runinfo_table[WESSample.sample_type] == sample_type
                 
                 runs = self.runinfo_table.loc[match_sample & match_sample_type]["Run"].tolist()
                 runs_per_type[sample_type] = runs
@@ -133,6 +135,12 @@ class WESSample:
         WESSample.write_to_file(cmd.rstrip(), f"{name}-{sample_name}-filter-annotate.sh")
 
 if __name__ == "__main__":
+    """
+    name = sys.argv[1]
+    metadata_filename = sys.argv[2]
+    output_directory = sys.argv[3]
+    """
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--name')
     parser.add_argument('-I', '--infile', help="path to run info file")
