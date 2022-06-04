@@ -106,9 +106,12 @@ class WESSample:
                     "--native-pair-hmm-threads $SLURM_CPUS_PER_TASK "
                     f"-O {write_directory}/{sample_name}_{chr_i}.vcf\n")
             WESSample.write_to_file(cmd.rstrip(), f"{name}-{sample_name}-mutect2.swarm")
+
+            cmd = "" # clear string
             
-    def batch_vcfs_annotations(self, processed_bams_directory: str, vcf_directory: str, write_directory: str, sra_suffix = "", cmd=""):
+    def batch_vcfs_annotations(self, processed_bams_directory: str, vcf_directory: str, write_directory: str, intervals_filename: str, sra_suffix = "", cmd=""):
         _num = list(range(1,22+1))+['X','Y','M']
+        cmd += "module load GATK picard\n"
 
         # TODO fix this implementation  
         for sample, runs in self.runs_per_patient.items():
@@ -127,13 +130,13 @@ class WESSample:
             cmd += f"gatk MergeMutectStats {vcf_per_chr} {vcf_stats_per_chr} -O {write_directory}/merged_{sample_name}.vcf.stats\n"
 
             cmd += (f"gatk GetPileupSummaries -I {processed_bams_directory}/{normal_sample}.recal.bam "
-                f"-V /data/wuchh/somatic-mutation-calls/databases/af-only-gnomad.hg38.vcf "
-                f"-L /data/wuchh/somatic-mutation-calls/databases/wgs_calling_regions.hg38.interval_list " # figure out which interval to use
+                f"-V /data/wuchh/somatic-mutation-calls/databases/small_exac_common_3.hg38.vcf "
+                f"-L {intervals_filename} " # figure out which interval to use
                 f"-O {vcf_directory}/normal_{sample_name}_pileup.table\n") 
 
             cmd += (f"gatk GetPileupSummaries -I {processed_bams_directory}/{tumour_sample}.recal.bam "
-                f"-V /data/wuchh/somatic-mutation-calls/databases/af-only-gnomad.hg38.vcf "
-                f"-L /data/wuchh/somatic-mutation-calls/databases/wgs_calling_regions.hg38.interval_list " # figure out which interval to use
+                f"-V /data/wuchh/somatic-mutation-calls/databases/small_exac_common_3.hg38.vcf "
+                f"-L {intervals_filename} " # figure out which interval to use
                 f"-O {vcf_directory}/tumour_{sample_name}_pileup.table\n") 
 
             cmd += (f"gatk CalculateContamination -I {vcf_directory}/tumour_{sample_name}_pileup.table "
@@ -149,6 +152,8 @@ class WESSample:
                 f"{vcf_directory}/filtered_{sample_name}.vcf > {vcf_directory}/annotated_{sample_name}.vcf")
 
             WESSample.write_to_file(cmd.rstrip(), f"{name}-{sample_name}-filter-annotate.sh")
+
+            cmd = "" # clear string
 
 if __name__ == "__main__":
 
@@ -187,6 +192,6 @@ if __name__ == "__main__":
     example.batch_reads_mapping(scripts, trimmed_reads, aligned_reads, sra_suffix="_dbGaP-25281")
     example.batch_bams_preprocessing(scripts, aligned_reads, processed_bams, intervals_filename, sra_suffix="_dbGaP-25281")
     example.swarm_vcfs_mutation_calling(processed_bams, mutation_vcf, sra_suffix="_dbGaP-25281")
-    example.batch_vcfs_annotations(processed_bams, mutation_vcf, mutation_vcf, sra_suffix="_dbGaP-25281")
+    example.batch_vcfs_annotations(processed_bams, mutation_vcf, mutation_vcf, intervals_filename, sra_suffix="_dbGaP-25281")
 
     # TODO organize output files
