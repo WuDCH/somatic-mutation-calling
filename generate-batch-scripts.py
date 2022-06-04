@@ -1,5 +1,6 @@
 import pandas as pd
 import argparse
+import yaml
 
 # Match tumour and normal sample accession codes based on sample name
 
@@ -44,6 +45,7 @@ class WESSample:
             fh.write(cmds)
 
     def batch_reads_retrieval(self, scripts_directory: str, write_directory: str, cmd="#!/bin/bash\n"):
+        # TODO start from sra file, for restricted datasets
         cmd += "module load sratoolkit\n"
         for run in self.all_runs:
             cmd += (f"bash {scripts_directory}/fasterq-dump.sh {run} {write_directory}\n")
@@ -65,11 +67,11 @@ class WESSample:
                 f"{trimmed_fastq_directory}/{run}_2_val_2.fq {write_directory} {run}.bam\n")
         WESSample.write_to_file(cmd.rstrip(), f"{name}-mapping-reads.sh")
 
-    def batch_bams_preprocessing(self, scripts_directory: str, mapped_reads_directory: str, write_directory: str, cmd="#!/bin/bash\n"):
+    def batch_bams_preprocessing(self, scripts_directory: str, mapped_reads_directory: str, write_directory: str, intervals_filename: str, cmd="#!/bin/bash\n"):
         cmd += "module load GATK samtools\n"
         for run in self.all_runs:
             cmd += (f"bash {scripts_directory}/bam-process.sh {mapped_reads_directory}/{run}.bam {run}_rg "
-                f"{write_directory} {run}\n")
+                f"{write_directory} {run} {intervals_filename}\n")
         WESSample.write_to_file(cmd.rstrip(), f"{name}-preprocessing-bams.sh")
 
     def swarm_vcfs_mutation_calling(self, processed_bams_directory: str, write_directory: str, cmd=""):
@@ -135,33 +137,42 @@ class WESSample:
             WESSample.write_to_file(cmd.rstrip(), f"{name}-{sample_name}-filter-annotate.sh")
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--name')
-    parser.add_argument('-I', '--infile', help="path to run info file")
-    parser.add_argument('-O', '--outdir', help="path to run info file")
+    parser.add_argument('-I', '--infile')
+    parser.add_argument('-O', '--outdir')
     parser.add_argument('--normal')
     parser.add_argument('--tumour')
+    parser.add_argument('--config')
+    parser.add_argument('-L', '--intervals', nargs='?', default='/data/wuchh/somatic-mutation-calls/databases/wgs_calling_regions.hg38.interval_list')
     args = parser.parse_args()
 
     name = args.name
     metadata_filename = args.infile
     output_directory = args.outdir
     kw_normal, kw_tumour = args.normal, args.tumour
+    config_filename = args.config
+    intervals_filename = args.intervals
 
-    # TODO use a configuration file for the below directories; take from cmd args (optional) and parse
-    scripts = "/data/wuchh/somatic-mutation-calls/code/scripts"
-    raw_reads = "/data/CDSLSahinalp/immunotherapy-WES/data/sra_cache"
-    trimmed_reads = "/data/CDSLSahinalp/immunotherapy-WES/data/trimmed"
-    aligned_reads = "/data/CDSLSahinalp/immunotherapy-WES/data/aligned"
-    processed_bams = "/data/CDSLSahinalp/immunotherapy-WES/data/preprocess-bams"
-    mutation_vcf = "/data/CDSLSahinalp/immunotherapy-WES/data/vcf"
+    with open(config_filename, mode="rb") as file:
+        file_paths = yaml.safe_load(file)
 
+    scripts = file_paths["directories"]["precall_scripts"]
+    raw_reads = file_paths["directories"]["raw_reads"]
+    trimmed_reads = file_paths["directories"]["trimmed_reads"]
+    aligned_reads = file_paths["directories"]["mapped_reads"]
+    processed_bams = file_paths["directories"]["bam_files"]
+    mutation_vcf = file_paths["directories"]["variant_call_files"]
+    
     example = WESSample(name, metadata_filename, (kw_normal, kw_tumour))
     example.preprocess_runinfo()
     example.groupby_sample()
     example.batch_reads_retrieval(scripts, raw_reads)
     example.batch_reads_quality_control(scripts, raw_reads, trimmed_reads)
     example.batch_reads_mapping(scripts, trimmed_reads, aligned_reads)
-    example.batch_bams_preprocessing(scripts, aligned_reads, processed_bams)
+    example.batch_bams_preprocessing(scripts, aligned_reads, processed_bams, intervals_filename)
     example.swarm_vcfs_mutation_calling(processed_bams, mutation_vcf)
     example.batch_vcfs_annotations(processed_bams, mutation_vcf, mutation_vcf)
+
+    # TODO organize output files
