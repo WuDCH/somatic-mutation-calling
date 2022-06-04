@@ -9,7 +9,8 @@ END
 BAM_FILE=$1
 READ_GRP=$2
 OUT_DIR=$3
-OUT_FILENAME=$4
+OUT_BASENAME=$4
+INTERVALS=$5
 
 ############ extra parameters ############
 basename=${BAM_FILE##*/}
@@ -18,7 +19,7 @@ record_name=${basename%.*}
 path_to_database="/data/wuchh/somatic-mutation-calls/databases/"
 knownSites_Ref1="${path_to_database}1000G_phase1.snps.high_confidence.hg38.vcf"
 knownSites_Ref2="${path_to_database}Homo_sapiens_assembly38.dbsnp138.vcf"
-intervals="${path_to_database}wgs_calling_regions.hg38.interval_list"
+# intervals="${path_to_database}wgs_calling_regions.hg38.interval_list"
 reference="/data/wuchh/somatic-mutation-calls/genomes/hg38/hg38.fa"
 ##########################################
 
@@ -36,16 +37,17 @@ samtools index ${OUT_DIR}${record_name}.rg.bam
 ## MarkDuplicatesSpark
 gatk --java-options "-Djava.io.tmpdir=/lscratch/$SLURM_JOBID -Xms60G -Xmx60G -XX:ParallelGCThreads=4" MarkDuplicatesSpark \
 -I ${OUT_DIR}${record_name}.rg.bam \
--L ${intervals} \
+-L ${INTERVALS} \
 -O ${OUT_DIR}${record_name}.markdupspark.bam \
 -M ${OUT_DIR}${record_name}.metrics.txt
+
 ## BaseRecalibrator
 gatk --java-options "-Djava.io.tmpdir=/lscratch/$SLURM_JOBID -Xms60G -Xmx60G -XX:ParallelGCThreads=4" BaseRecalibrator \
 -I ${OUT_DIR}${record_name}.markdupspark.bam \
 -R ${reference} \
 --known-sites ${knownSites_Ref1} \
 --known-sites ${knownSites_Ref2} \
--L ${intervals} \
+-L ${INTERVALS} \
 -O ${OUT_DIR}${record_name}.recal.table
 
 ## ApplyBQSR
@@ -53,7 +55,7 @@ gatk --java-options "-Djava.io.tmpdir=/lscratch/$SLURM_JOBID -Xms60G -Xmx60G -XX
 -R ${reference} \
 -I ${OUT_DIR}${record_name}.markdupspark.bam \
 --bqsr-recal-file ${OUT_DIR}${record_name}.recal.table \
--L ${intervals} \
--O ${OUT_DIR}${OUT_FILENAME}.recal.bam
+-L ${INTERVALS} \
+-O ${OUT_DIR}${OUT_BASENAME}.recal.bam
 
 

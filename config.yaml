@@ -1,0 +1,15 @@
+# =================================================================
+# Directories for dependencies and output files
+# =================================================================
+directories:
+    precall_scripts: /data/wuchh/somatic-mutation-calls/code/scripts
+    raw_reads: /data/CDSLSahinalp/immunotherapy-WES/data/sra-vanallen
+    trimmed_reads: /data/CDSLSahinalp/immunotherapy-WES/data/trimmed
+    mapped_reads: /data/CDSLSahinalp/immunotherapy-WES/data/aligned
+    bam_files: /data/CDSLSahinalp/immunotherapy-WES/data/preprocess-bams
+    variant_call_files: /data/CDSLSahinalp/immunotherapy-WES/data/vcf
+
+# =================================================================
+# Accessory files
+# =================================================================
+# includes pon, gnomad, interval list
