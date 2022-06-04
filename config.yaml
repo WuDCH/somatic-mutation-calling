@@ -3,7 +3,7 @@
 # =================================================================
 directories:
     precall_scripts: /data/wuchh/somatic-mutation-calls/code/scripts
-    raw_reads: /data/CDSLSahinalp/immunotherapy-WES/data/sra_cache
+    raw_reads: /data/CDSLSahinalp/immunotherapy-WES/data/sra-vanallen
     trimmed_reads: /data/CDSLSahinalp/immunotherapy-WES/data/trimmed
     mapped_reads: /data/CDSLSahinalp/immunotherapy-WES/data/aligned
     bam_files: /data/CDSLSahinalp/immunotherapy-WES/data/preprocess-bams
