@@ -2,7 +2,7 @@
 # Directories for dependencies and output files
 # =================================================================
 directories:
-    precall_scripts: /data/wuchh/somatic-mutation-calls/code/scripts
+    precall_scripts: /data/wuchh/tn-mutation-calls/precall-scripts/
     raw_reads: /data/CDSLSahinalp/immunotherapy-WES/data/sra-vanallen
     trimmed_reads: /data/CDSLSahinalp/immunotherapy-WES/data/trimmed
     mapped_reads: /data/CDSLSahinalp/immunotherapy-WES/data/aligned
