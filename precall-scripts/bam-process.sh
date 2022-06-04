@@ -39,6 +39,7 @@ gatk --java-options "-Djava.io.tmpdir=/lscratch/$SLURM_JOBID -Xms60G -Xmx60G -XX
 -L ${intervals} \
 -O ${OUT_DIR}${record_name}.markdupspark.bam \
 -M ${OUT_DIR}${record_name}.metrics.txt
+
 ## BaseRecalibrator
 gatk --java-options "-Djava.io.tmpdir=/lscratch/$SLURM_JOBID -Xms60G -Xmx60G -XX:ParallelGCThreads=4" BaseRecalibrator \
 -I ${OUT_DIR}${record_name}.markdupspark.bam \
