@@ -60,7 +60,7 @@ class WESSample:
     def batch_reads_quality_control(self, scripts_directory: str, raw_fastq_directory: str, write_directory: str, cmd="#!/bin/bash\n"):
         cmd += "module load fastqc trimgalore\n"
         for run in self.all_runs:
-            cmd += (f"bash {scripts_directory}/fastq-quality-control.sh {raw_fastq_directory}/{run}_1.fastq "
+            cmd += (f"bash {scripts_directory}/fastq-quality-control.sh "
                 f"{raw_fastq_directory}/{run}_1.fastq "
                 f"{raw_fastq_directory}/{run}_2.fastq "
                 f"{write_directory}\n")
